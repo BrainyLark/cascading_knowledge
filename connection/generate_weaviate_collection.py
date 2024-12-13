@@ -20,7 +20,7 @@ def generate_weaviate_collection():
                 wvc.config.Property(name="last_updated", data_type=wvc.config.DataType.NUMBER),
             ],
             vectorizer_config=wvc.config.Configure.Vectorizer.text2vec_jinaai(model='jina-embeddings-v3'),
-            generative_config=wvc.config.Configure.Generative.openai(model='gpt-4o')
+            generative_config=wvc.config.Configure.Generative.openai(model='gpt-4o-mini')
         )
     finally:
         conn.close()
