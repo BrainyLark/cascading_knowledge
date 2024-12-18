@@ -5,7 +5,7 @@ from vectordb_conn import Connection
 
 from sentence_transformers import SentenceTransformer
 
-def generate_reg_collection(client):
+def setup_policy_table(client):
     try:
         golomt_regulations = client.collections.create(
             name="GolomtRegulations",
@@ -18,25 +18,32 @@ def generate_reg_collection(client):
             vectorizer_config=wvc.config.Configure.Vectorizer.none(),
             generative_config=wvc.config.Configure.Generative.openai(model="gpt-4o-mini")
         )
-    except Exception as exception:
-        print(f"An error occured in creating GolomtRegulations collection: {exception}")
+    except Exception as e:
+        print(f"An error occured in creating GolomtRegulations collection: {e}")
 
+def restart_faq_table(client):
+    try:
+        client.collections.delete("GolomtFAQ")
+        print("GolomtFAQ table has been deleted.")
+    except Exception as e:
+        print(f"Exception happened with restarting faq table: {e}")
+    finally:
+        setup_faq_table(client)
 
-def generate_faq_collection(client):
+def setup_faq_table(client):
     try:
         golomt_faq = client.collections.create(
             name="GolomtFAQ",
             properties=[
                 wvc.config.Property(name="question", data_type=wvc.config.DataType.TEXT),
                 wvc.config.Property(name="response", data_type=wvc.config.DataType.TEXT),
-                wvc.config.Property(name="question_v", data_type=wvc.config.DataType.NUMBER_ARRAY),
-                wvc.config.Property(name="response_v", data_type=wvc.config.DataType.NUMBER_ARRAY),
+                wvc.config.Property(name="last_updated", data_type=wvc.config.DataType.DATE),
             ],
             vectorizer_config=wvc.config.Configure.Vectorizer.none(),
             generative_config=wvc.config.Configure.Generative.openai(model="gpt-4o-mini")
         )
-    except Exception as exception:
-        print(f"Error appeared in creating GolomtFAQ: {exception}")
+    except Exception as e:
+        print(f"Error appeared in creating GolomtFAQ: {e}")
 
 
 def main():
@@ -44,8 +51,8 @@ def main():
     print(f"Connecting to  the WCD server...")
     connection = Connection()
     client = connection.get_client()
-    generate_reg_collection(client);
-    print(f"Constructed GolomtRegulations successfully...")
+    restart_faq_table(client);
+    print(f"Constructed GolomtFAQ successfully...")
     connection.close()
 
 if __name__ == "__main__":

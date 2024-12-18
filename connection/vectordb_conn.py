@@ -10,8 +10,7 @@ class Connection:
 
     def __init__(self):
         _ = load_dotenv()
-        self.client = weaviate.connect_to_local()
-        
+        self.client = weaviate.connect_to_local(headers={'X-OpenAI-Api-Key':os.getenv('OPENAI_APIKEY')}) 
         print(f"Client has been set up. Client readiness: {self.client.is_ready()}")
         
     def get_client(self):
