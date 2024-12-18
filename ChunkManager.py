@@ -1,10 +1,12 @@
 import hashlib
 import logging
+from datetime import datetime
 from weaviate.util import generate_uuid5 
 from weaviate.classes.query import Filter
 from connection.vectordb_conn import Connection
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import UnstructuredHTMLLoader
+from sentence_transformers import SentenceTransformer
 
 class ChunkManager:
 
@@ -16,6 +18,7 @@ class ChunkManager:
         self.connection = Connection()
         self.client = self.connection.get_client()
         self.collection = self.client.collections.get(collection_name)
+        self.model = SentenceTransformer("jinaai/jina-embeddings-v3", trust_remote_code=True)
         self.logger = logger
 
     
@@ -34,12 +37,13 @@ class ChunkManager:
 
         for i, chunk in enumerate(chunks):
             chunk_hash = self.calculate_chunk_hash(chunk.page_content)
-
+            last_updated = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             metadata = {
                 "doc_id": doc_id,
                 "chunk_index": i,
                 "chunk_hash": chunk_hash,
-                "content": chunk.page_content
+                "content": chunk.page_content,
+                "last_updated": last_updated
             }
 
             chunk_metadata.append(metadata)
@@ -71,39 +75,42 @@ class ChunkManager:
         self.logger.info(f"Deletion summary: {deleted}")
 
         with self.collection.batch.dynamic() as batch:
-            for chunk in chunks_to_add:
-                batch.add_object(properties=chunk, uuid=generate_uuid5(chunk))
+            for metadata in chunks_to_add:
+                content_encoded = self.model.encode(metadata["content"], task="retrieval.passage")
+                batch.add_object(properties=metadata, uuid=generate_uuid5(metadata), vector=content_encoded.tolist())
 
         self.logger.info(f"Num. of chunks added: {len(chunks_to_add)}")
 
 
-    def populate_collection_chunks(self, doc_id, new_chunks):
+    def populate_table_chunks(self, doc_id, new_chunks):
         """ Initial population with document chunks upon truncation """
+        chunk_metadata = self.store_chunk_metadata(doc_id, new_chunks)
         with self.collection.batch.dynamic() as batch:
-            for chunk in new_chunks:
-                batch.add_object(properties=chunk, uuid=generate_uuid5(chunk))
-
+            for metadata in chunk_metadata:
+                content_encoded = self.model.encode(metadata['content'], task='retrieval.passage')
+                batch.add_object(properties=metadata, uuid=generate_uuid5(metadata), vector=content_encoded.tolist())
+                self.logger.info("Metadata vector:")
+                self.logger.info(content_encoded)
+                self.logger.info("Metadata properties:")
+                self.logger.info(metadata)
+                
         self.logger.info(f"{len(new_chunks)} new chunks populated the collection is inserted.")
 
-    def truncate_collection_chunks(self, doc_id):
+    def truncate_table_chunks(self, doc_id):
         deleted = self.collection.data.delete_many(where=Filter.by_property("doc_id").equal(doc_id))
         self.logger.info(f"Collection truncate summary: {deleted}")
 
 
 def main():
     
-    logging.basicConfig(filename="logs/chunk_management_xpmt_beta.log", level=logging.INFO)
+    logging.basicConfig(filename="logs/chunk_import_xpmt_002.log", level=logging.INFO)
     logger = logging.getLogger(__name__)
-    
-    manager = ChunkManager(logger=logger)
+    chunk_manager = ChunkManager(logger=logger)
     doc_id = "golomtqa/golomt_docs/Зээл.html"
-    
-    manager.truncate_collection_chunks(doc_id)
-    chunks = manager.get_document_chunks(doc_id)
-    chunk_metadata = manager.store_chunk_metadata(doc_id, chunks)
-    manager.populate_collection_chunks(doc_id, chunk_metadata)
-    
-    manager.connection.close()
+    chunk_manager.truncate_table_chunks(doc_id)
+    chunks = chunk_manager.get_document_chunks(doc_id)
+    chunk_manager.populate_table_chunks(doc_id, chunks)
+    chunk_manager.connection.close()
 
 if __name__ == "__main__":
     main()
