@@ -46,20 +46,14 @@ class ChunkManager:
 
         return chunk_metadata
 
-    def batch_update_weaviate(self, chunks_to_add, chunks_to_delete):
-        hashes_to_delete = {chunk["chunk_hash"] for chunk in chunks_to_delete}
-        deleted = self.collection.data.delete_many(where=Filter.by_property("chunk_hash").contains_any(hashes_to_delete))
+    def update_chunks(self, doc_id, new_chunks):
+        """Update doc_id chunks based on differences from new chunks"""
+        response = self.collection.query.fetch_objects(filters=Filter.by_property("doc_id").equal(doc_id))
+        existing_chunks = [obj.properties for obj in response]
+        new_chunk_metadata = self.store_chunk_metadata(doc_id, new_chunks)
+
+        self.process_chunk_updates(existing_chunks, new_chunk_metadata)
         
-        self.logger.info(f"Hashes chosen to be deleted: {hashes_to_delete}")
-        self.logger.info(f"Deletion summary: {deleted}")
-
-        with self.collection.batch.dynamic() as batch:
-            for chunk in chunks_to_add:
-                batch.add_object(properties=chunk, uuid=generate_uuid5(chunk))
-
-        self.logger.info(f"Num. of chunks added: {len(chunks_to_add)}")
-        
-
     def process_chunk_updates(self, existing_chunks, new_chunk_metadata):
         """ Identify differences using hashes much faster than raw string matching """
         existing_hashes = {chunk['chunk_hash'] for chunk in existing_chunks}
@@ -69,6 +63,20 @@ class ChunkManager:
         chunks_to_delete = [chunk for chunk in new_chunk_metadata if chunk['chunk_hash'] not in new_hashes]
         self.batch_update_weaviate(chunks_to_add, chunks_to_delete)
     
+    def batch_update_weaviate(self, chunks_to_add, chunks_to_delete):
+        hashes_to_delete = {chunk["chunk_hash"] for chunk in chunks_to_delete}
+        deleted = self.collection.data.delete_many(where=Filter.by_property("chunk_hash").contains_any(list(hashes_to_delete)))
+        
+        self.logger.info(f"Hashes chosen to be deleted: {hashes_to_delete}")
+        self.logger.info(f"Deletion summary: {deleted}")
+
+        with self.collection.batch.dynamic() as batch:
+            for chunk in chunks_to_add:
+                batch.add_object(properties=chunk, uuid=generate_uuid5(chunk))
+
+        self.logger.info(f"Num. of chunks added: {len(chunks_to_add)}")
+
+
     def populate_collection_chunks(self, doc_id, new_chunks):
         """ Initial population with document chunks upon truncation """
         with self.collection.batch.dynamic() as batch:
@@ -84,7 +92,7 @@ class ChunkManager:
 
 def main():
     
-    logging.basicConfig(filename="logs/chunk_management_xpmt_alpha.log", level=logging.INFO)
+    logging.basicConfig(filename="logs/chunk_management_xpmt_beta.log", level=logging.INFO)
     logger = logging.getLogger(__name__)
     
     manager = ChunkManager(logger=logger)
