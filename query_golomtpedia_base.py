@@ -1,30 +1,21 @@
-import weaviate
-from weaviate.classes.init import Auth
-from weaviate.classes.config import Configure
+import logging
 from connection.vectordb_conn import Connection
+from weaviate.classes.query import Filter
 
 def main():
     
-    conn = Connection()
-    golomt_collection = conn.get_client().collections.get("GolomtbankRegulations")
+    logging.basicConfig(filename="logs/filtering_regulation_data.log", level=logging.INFO)
+    logger = logging.getLogger(__name__)
     
-    text_query = ''
+    conn = Connection()
+    collection = conn.get_client().collections.get("GolomtRegulations")
+    
+    response = collection.query.fetch_objects(
+        filters=Filter.by_property("chunk_hash").equal("edf9b1e7f435f7068d26749d3ac29961"),
+        limit=1
+    )
 
-    while text_query != 'exit':
-        text_query = input("юу мэдмээр байна: ")
-        response = golomt_collection.generate.near_text(
-                query=text_query, 
-                grouped_task="Describe {text} in a formal text in Mongolian.", 
-                limit=3
-            )
-        
-
-        for obj in response.objects:
-            print(f"Information chunk relayed to the chatbot: \n\n{obj.properties} \n\n")
-
-        print(f"Чатботоос ирсэн хариулт:\n")
-
-        print(f"\n{response.generated}\n\n")
+    logger.info(response)
 
     conn.close()
 

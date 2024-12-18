@@ -1,0 +1,13 @@
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/.well-known/openid-configuration "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/meta "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://pypi.org/pypi/weaviate-client/json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/.well-known/ready "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/schema/GolomtRegulations "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/nodes "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/.well-known/openid-configuration "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/meta "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://pypi.org/pypi/weaviate-client/json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/.well-known/ready "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/schema/GolomtRegulations "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:8080/v1/nodes "HTTP/1.1 200 OK"
+INFO:__main__:19 new chunks populated the collection is inserted.
