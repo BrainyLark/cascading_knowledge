@@ -1,2 +1,4 @@
 connection/.env
+connection/logs/
 golomtqa/
+logs/
