@@ -2,3 +2,4 @@ connection/.env
 connection/logs/
 golomtqa/
 logs/
+delta_handler.py
