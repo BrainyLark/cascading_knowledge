@@ -23,7 +23,7 @@ The following table illustrates task descriptions needed to complete the service
 | Chunk manager | 2.1.b Chunk hashing            | An incoming html document is loaded through unstructured html reader and split into chunks through the recursive text splitter and hashed with md5.                                                                                                                                                                                                                                                                                                      | 🟢     |
 | Chunk manager | 2.2 Chunk update               | For a document, the existing chunks and coming chunks are compared in their hashes alone, working out two lists: chunks to delete and chunks to add.                                                                                                                                                                                                                                                                                                     | 🟢     |
 | Chunk manager | 2.3 Chunk persistence          | A function to delete the chunks not present in the new chunks, and add the chunks defined by the new document hashes that were not present in the database apriori.                                                                                                                                                                                                                                                                                      | 🟢     |
-| Chunk manager | 2.4 Document listener          | A module to listen to the changes in the given directory and invoke 2.1.b to 2.3.                                                                                                                                                                                                                                                                                                                                                                        | 🔵     |
+| Chunk manager | 2.4 Document listener          | A module to listen to the changes in the given directory and invoke 2.1.b to 2.3.                                                                                                                                                                                                                                                                                                                                                                        | 🟢     |
 | QA manager    | 3.1 Identify Q'                | Q' is a set of queries subject to change in light of updates on the document chunks. A query's response is updated if and only if the last updated date of one of the chunks related to the query is later than the query's last updated date.                                                                                                                                                                                                           | 🔵     |
 | QA manager    | 3.2 Update Q' responses        | Policy chunks are fed into the LLM alongside with the question and the previous response to generate a new response.                                                                                                                                                                                                                                                                                                                                     | 🟡     |
 | Other         | 3.3 Connect modules            | Connect Watchdog, QAManager and ChunkManager to synthesize their functions.                                                                                                                                                                                                                                                                                                                                                                              | 🟡     |
@@ -46,32 +46,14 @@ self.client = weaviate.connect_to_local(headers={'X-OpenAI-Api-Key':os.getenv('O
 
 Create DB collections using `setup/setup_tables.py` via `reset_table(client, table_name)` function. `table_name` can only be `GolomtFAQ` or `GolomtRegulations`, with the former for faq tuples and the latter to store policy document chunks. 
 
-
-
 Please add to the schemas of `GolomtFAQ` and `GolomtRegulations` since your current use case may differ, but do not remove any schema property out of it because `ChunkManager.py` and `QAManager.py` functionalities hinge on it.
-
-
 
 By running `setup/import_faq.py`, populate `GolomtFAQ` in compliance with the schema. Not to mention, you could also use `setup/check_total_count.py` to see if they're imported.
 
-
-
 To populate `GolomtRegulations`, use `ChunkManager.py`'s `populate_table_chunks` function. Remember, here I am not using a batch encoding due to the possibility that a large number of chunks could come in.
-
-
 
 ### Logs
 
 Create `logs` directory both inside `./setup` and the project root `./`, to track down the flow of the scripts running. Run `query.py` to retrieve some `GolomtRegulations` chunks into the `logs/faq_query_results_001.log` to see its structure.
 
-
-
 ## License
-
-
-
-
-
-
-
-
