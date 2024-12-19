@@ -22,14 +22,14 @@ def setup_policy_table(client):
         print(f"An error occured in creating GolomtRegulations collection: {e}")
 
 def reset_table(client, table_name):
-    table_exists = wclient.collections.exists(table_name)
+    table_exists = client.collections.exists(table_name)
     if table_exists:
         try:
-            client.collections.delete(table_title)
-            print("GolomtFAQ table has been deleted.")
+            client.collections.delete(table_name)
         except Exception as e:
             print(f"Exception happened with restarting faq table: {e}")
-
+        finally:
+            print(f"Deleted table: {table_name}")
     if table_name == 'GolomtFAQ':
         setup_faq_table(client)
     elif table_name == 'GolomtRegulations':
@@ -57,7 +57,7 @@ def main():
 
     connection = Connection()
     client = connection.get_client()
-    reset_table(client);
+    reset_table(client, 'GolomtRegulations');
     connection.close()
 
 if __name__ == "__main__":

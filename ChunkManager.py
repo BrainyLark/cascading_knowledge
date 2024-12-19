@@ -1,3 +1,4 @@
+import os
 import hashlib
 import logging
 from datetime import datetime
@@ -102,14 +103,24 @@ class ChunkManager:
 
 
 def main():
-    
-    logging.basicConfig(filename="logs/chunk_import_xpmt_002.log", level=logging.INFO)
+    """
+        main() is responsible for importing into GolomtRegulations
+        all the .html documents after slicing them down in chunks.
+    """
+    logging.basicConfig(filename="logs/dir_import_xpmt_1.log", level=logging.INFO)
     logger = logging.getLogger(__name__)
     chunk_manager = ChunkManager(logger=logger)
-    doc_id = "golomtqa/golomt_docs/Зээл.html"
-    chunk_manager.truncate_table_chunks(doc_id)
-    chunks = chunk_manager.get_document_chunks(doc_id)
-    chunk_manager.populate_table_chunks(doc_id, chunks)
+    
+    parent_dir = 'golomtqa/golomt_docs'
+    doc_titles = os.listdir(parent_dir)
+    doc_filepaths = [parent_dir + '/' + x for x in doc_titles]
+    for doc_id in doc_filepaths:
+        #chunk_manager.truncate_table_chunks(doc_id)
+        chunks = chunk_manager.get_document_chunks(doc_id)
+        chunk_manager.populate_table_chunks(doc_id, chunks)
+        logger.info(f"Status: COMPLETED with {doc_id}.")
+        logger.info(f"Chunks with length of {len(chunks)} INSERTED.\n\n")
+
     chunk_manager.connection.close()
 
 if __name__ == "__main__":
