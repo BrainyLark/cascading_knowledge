@@ -4,7 +4,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from typing import List, Sequence, Dict
-from connection.vectordb_conn import Connection
+from setup.vectordb_conn import Connection
 from weaviate.classes.query import Filter
 
 from langchain_core.documents import Document

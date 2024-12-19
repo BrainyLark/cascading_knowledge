@@ -1,6 +1,6 @@
 import logging
 
-from connection.vectordb_conn import Connection
+from setup.vectordb_conn import Connection
 from weaviate.classes.query import Filter
 
 

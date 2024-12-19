@@ -21,14 +21,21 @@ def setup_policy_table(client):
     except Exception as e:
         print(f"An error occured in creating GolomtRegulations collection: {e}")
 
-def restart_faq_table(client):
-    try:
-        client.collections.delete("GolomtFAQ")
-        print("GolomtFAQ table has been deleted.")
-    except Exception as e:
-        print(f"Exception happened with restarting faq table: {e}")
-    finally:
+def reset_table(client, table_name):
+    table_exists = wclient.collections.exists(table_name)
+    if table_exists:
+        try:
+            client.collections.delete(table_title)
+            print("GolomtFAQ table has been deleted.")
+        except Exception as e:
+            print(f"Exception happened with restarting faq table: {e}")
+
+    if table_name == 'GolomtFAQ':
         setup_faq_table(client)
+    elif table_name == 'GolomtRegulations':
+        setup_policy_table(client)
+    else:
+        raise ValueError('Table names can only be GolomtFAQ or GolomtRegulations')
 
 def setup_faq_table(client):
     try:
@@ -48,11 +55,9 @@ def setup_faq_table(client):
 
 def main():
 
-    print(f"Connecting to  the WCD server...")
     connection = Connection()
     client = connection.get_client()
-    restart_faq_table(client);
-    print(f"Constructed GolomtFAQ successfully...")
+    reset_table(client);
     connection.close()
 
 if __name__ == "__main__":

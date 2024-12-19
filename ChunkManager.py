@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from weaviate.util import generate_uuid5 
 from weaviate.classes.query import Filter
-from connection.vectordb_conn import Connection
+from setup.vectordb_conn import Connection
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import UnstructuredHTMLLoader
 from sentence_transformers import SentenceTransformer
